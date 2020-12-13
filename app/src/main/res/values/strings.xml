@@ -2,6 +2,8 @@
     <string name="app_name">lab1.1</string>
     <string name="text_input_hint">enter something</string>
     <string name="button_text">Set Text</string>
-    <string name="button2_text">Show new page</string>
+    <string name="button2_text">Show next page</string>
     <string name="second_activity_text">Hi, it is second activity</string>
+    <string name="previous_text">Previous</string>
+    <string name="next_text">Next</string>
 </resources>
