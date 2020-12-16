@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">lab1.1</string>
+    <string name="app_name">lab2</string>
     <string name="text_input_hint">enter something</string>
     <string name="button_text">Set Text</string>
     <string name="button2_text">Show next page</string>
