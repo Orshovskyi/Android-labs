@@ -1,57 +1,46 @@
-package com.example.lab11
+package com.example.lab11.oldActivities
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.Spinner
 import android.widget.Toast
-import androidx.fragment.app.Fragment
+import androidx.appcompat.app.AppCompatActivity
+import com.example.lab11.MainActivity
+import com.example.lab11.R
 import kotlinx.android.synthetic.main.activity_third.*
 
-class ConverterFragment : Fragment() {
 
-    lateinit var converBtn: Button
-    lateinit var spinner1: Spinner
-    lateinit var spinner2: Spinner
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-
-        // Inflate the layout for this fragment
-        val view: View  = inflater.inflate(R.layout.fragment_converter, container, false)
-        converBtn = view.findViewById(R.id.convertBtn)
-        converBtn.setOnClickListener(View.OnClickListener {
-            convert(view)
-        })
+class ThirdActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_third)
         val items = arrayOf("ton", "hundredweight", "kilogram", "gram", "carat", "milligram", "pound", "ounce")
 
         val adapter =
-            this.activity?.let { ArrayAdapter(it, android.R.layout.simple_spinner_dropdown_item, items) }
-        spinner1 = view.findViewById(R.id.spinner1)
+            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, items)
+
         spinner1.adapter = adapter
-        spinner2 = view.findViewById(R.id.spinner2)
         spinner2.adapter = adapter
-        return view
+    }
+
+    fun showSecondActivity(view: View) {
+        val intent = Intent(this, SecondActivity::class.java)
+        startActivity(intent)
+    }
+
+    fun showMainActivity(view: View) {
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
     }
 
     fun convert(view: View) {
         val inputValue = input.text.toString()
-
-        var inputValueDouble = 0.0
-        try {
-            inputValueDouble = inputValue.toDouble()
-        } catch (ex: NumberFormatException){
-            val toast = Toast.makeText(this.context, "Please enter valid value", Toast.LENGTH_SHORT)
-            toast.show()
-            return
-        }
-
+        val inputValueDouble = inputValue.toDouble()
         when (spinner2.selectedItem) {
-            spinner1.selectedItem -> resultField.setText(input.text)
             "ton" -> toTon(inputValueDouble)
             "hundredweight" -> toHundredweight(inputValueDouble)
             "kilogram" -> toKilogram(inputValueDouble)
@@ -62,6 +51,16 @@ class ConverterFragment : Fragment() {
             "ounce" -> toOunce(inputValueDouble)
         }
 
+        copyToClipBoard()
+    }
+
+    fun copyToClipBoard() {
+        val clipboard: ClipboardManager =
+            getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip: ClipData = ClipData.newPlainText("simple text", resultField.text)
+        clipboard.setPrimaryClip(clip)
+        val toast = Toast.makeText(this, "Result copied", Toast.LENGTH_SHORT)
+        toast.show()
     }
 
     fun toTon(input: Double) {

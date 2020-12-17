@@ -1,44 +1,95 @@
-package com.example.lab11
+package com.example.lab11.converter
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.Spinner
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.getSystemService
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
+import com.example.lab11.R
 import kotlinx.android.synthetic.main.activity_third.*
+import timber.log.Timber
 
 
-class ThirdActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_third)
-        val items = arrayOf("ton", "hundredweight", "kilogram", "gram", "carat", "milligram", "pound", "ounce")
+class ConverterFragment : Fragment() {
+    private lateinit var viewModel: ConverterViewModel
+
+    lateinit var converBtn: Button
+    lateinit var spinner1: Spinner
+    lateinit var spinner2: Spinner
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        Timber.i("ViewModelProviders.of called")
+        viewModel = ViewModelProviders.of(this).get(ConverterViewModel::class.java)
+
+        // Inflate the layout for this fragment
+        val view: View  = inflater.inflate(R.layout.fragment_converter, container, false)
+        converBtn = view.findViewById(R.id.convertBtn)
+        converBtn.setOnClickListener(View.OnClickListener {
+            convert(view)
+            viewModel.onConvertBtnClicked()
+        })
+
 
         val adapter =
-            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, items)
-
+            this.activity?.let { ArrayAdapter(it, android.R.layout.simple_spinner_dropdown_item,
+                viewModel.items.value as Array<out String>
+            ) }
+        spinner1 = view.findViewById(R.id.spinner1)
         spinner1.adapter = adapter
+        spinner2 = view.findViewById(R.id.spinner2)
         spinner2.adapter = adapter
-    }
 
-    fun showSecondActivity(view: View) {
-        val intent = Intent(this, SecondActivity::class.java)
-        startActivity(intent)
-    }
+        viewModel.lastSelectedUnitId1.observe(this, Observer { newUnitId ->
+            spinner1.setSelection(newUnitId)
+        })
 
-    fun showMainActivity(view: View) {
-        val intent = Intent(this, MainActivity::class.java)
-        startActivity(intent)
+        viewModel.lastSelectedUnitId2.observe(this, Observer { newUnitId ->
+            spinner2.setSelection(newUnitId)
+        })
+
+        viewModel.eventValueConverted.observe(viewLifecycleOwner, Observer { isConverted ->
+            if (isConverted) {
+                notifyThatValueWasConverted()
+                viewModel.onConvertValueComplete()
+            }
+        })
+
+        viewModel.eventBuzz.observe(this, Observer { buzzType ->
+            if (buzzType != ConverterViewModel.BuzzType.NO_BUZZ) {
+                buzz(buzzType.pattern)
+                viewModel.onBuzzComplete()
+            }
+        })
+
+        return view
     }
 
     fun convert(view: View) {
         val inputValue = input.text.toString()
-        val inputValueDouble = inputValue.toDouble()
+
+        var inputValueDouble = 0.0
+        try {
+            inputValueDouble = inputValue.toDouble()
+        } catch (ex: NumberFormatException){
+            val toast = Toast.makeText(this.context, "Please enter valid value", Toast.LENGTH_SHORT)
+            toast.show()
+            return
+        }
+
         when (spinner2.selectedItem) {
+            spinner1.selectedItem -> resultField.setText(input.text)
             "ton" -> toTon(inputValueDouble)
             "hundredweight" -> toHundredweight(inputValueDouble)
             "kilogram" -> toKilogram(inputValueDouble)
@@ -49,16 +100,6 @@ class ThirdActivity : AppCompatActivity() {
             "ounce" -> toOunce(inputValueDouble)
         }
 
-        copyToClipBoard()
-    }
-
-    fun copyToClipBoard() {
-        val clipboard: ClipboardManager =
-            getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clip: ClipData = ClipData.newPlainText("simple text", resultField.text)
-        clipboard.setPrimaryClip(clip)
-        val toast = Toast.makeText(this, "Result copied", Toast.LENGTH_SHORT)
-        toast.show()
     }
 
     fun toTon(input: Double) {
@@ -160,5 +201,29 @@ class ThirdActivity : AppCompatActivity() {
     fun setResult(result: Double) {
         val s: String = result.toString()
         resultField.setText(s)
+    }
+
+    override fun onDestroy() {
+        Timber.i("onDestroy Fragment")
+        viewModel.lastSelectedUnitId1.value = spinner1.selectedItemId.toInt()
+        viewModel.lastSelectedUnitId2.value = spinner2.selectedItemId.toInt()
+        super.onDestroy()
+    }
+
+    fun notifyThatValueWasConverted() {
+        Toast.makeText(this.context, "Value converted", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun buzz(pattern: LongArray) {
+        val buzzer = activity?.getSystemService<Vibrator>()
+        buzzer?.let {
+            // Vibrate for 500 milliseconds
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                buzzer.vibrate(VibrationEffect.createWaveform(pattern, -1))
+            } else {
+                //deprecated in API 26
+                buzzer.vibrate(pattern, -1)
+            }
+        }
     }
 }

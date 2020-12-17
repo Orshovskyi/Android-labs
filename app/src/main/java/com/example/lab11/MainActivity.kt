@@ -8,6 +8,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
+import com.example.lab11.about.AboutFragment
+import com.example.lab11.converter.ConverterFragment
+import com.example.lab11.timer.InFocusTimer
+import com.example.lab11.timer.Timer
 import kotlinx.android.synthetic.main.fragment_converter.*
 import timber.log.Timber
 import kotlin.math.roundToInt

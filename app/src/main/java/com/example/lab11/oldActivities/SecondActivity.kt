@@ -1,10 +1,12 @@
-package com.example.lab11
+package com.example.lab11.oldActivities
 
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.example.lab11.MainActivity
+import com.example.lab11.R
 import kotlinx.android.synthetic.main.activity_second.*
 
 class SecondActivity : AppCompatActivity() {

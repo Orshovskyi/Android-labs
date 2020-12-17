@@ -1,4 +1,4 @@
-package com.example.lab11
+package com.example.lab11.timer
 
 import android.os.Handler
 import androidx.lifecycle.Lifecycle
