@@ -9,12 +9,39 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
 import kotlinx.android.synthetic.main.fragment_converter.*
+import timber.log.Timber
+import kotlin.math.roundToInt
+
+const val KEY_RESTORE = "key_value_to_restore"
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var timer: Timer
+    private lateinit var inFocusTimer: InFocusTimer
+    var valueToRestore = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        Timber.i("onCreate called")
+        if(savedInstanceState != null){
+            Timber.i("Saved value: ${savedInstanceState.getInt(KEY_RESTORE, 0)}")
+            Timber.i("Unsaved value: $valueToRestore")
+        }
+        timer = Timer(this.lifecycle)
+        inFocusTimer = InFocusTimer(this.lifecycle)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        valueToRestore = 10
+        outState.putInt(KEY_RESTORE, valueToRestore)
+        Timber.i("onSaveInstanceState called")
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        Timber.i("onRestoreInstanceState called")
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -50,5 +77,41 @@ class MainActivity : AppCompatActivity() {
         }
 
         return true
+    }
+
+    /** Lifecycle Methods **/
+    override fun onStart() {
+        super.onStart()
+        Timber.i("onStart called")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Timber.i("onResume called")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Timber.i("onPause called")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Timber.i("onStop called")
+    }
+
+    override fun onDestroy() {
+        val inFocusSeconds = inFocusTimer.secondsCount
+        val generalSeconds = timer.secondsCount
+        val appWasInFocus = (inFocusSeconds.toDouble() / generalSeconds.toDouble()) * 100
+        appWasInFocus.roundToInt()
+        Timber.i("$appWasInFocus% - App was in focus")
+        super.onDestroy()
+        Timber.i("onDestroy called")
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        Timber.i("onRestart called")
     }
 }
